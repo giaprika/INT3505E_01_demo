@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mượn sách: {{ book.title }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.borrower.label }} {{ form.borrower() }}<br>
+    {{ form.submit() }}
+</form>
+{% endblock %}
