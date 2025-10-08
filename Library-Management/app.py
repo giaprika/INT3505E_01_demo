@@ -1,52 +1,102 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, request, jsonify, make_response
 from models import db, Book, Borrow
-from forms import BookForm, BorrowForm
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-app.config["SECRET_KEY"] = "secret"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
-@app.route("/")
-def index():
+
+# ---- RESTful API ----
+
+# GET all books
+@app.route("/api/books", methods=["GET"])
+def get_books():
     books = Book.query.all()
-    return render_template("index.html", books=books)
+    data = [{"id": b.id, "title": b.title, "author": b.author, "available": b.available} for b in books]
+    
+    response = make_response(jsonify(data), 200)
+    response.headers["Cache-Control"] = "public, max-age=60"
+    response.headers["ETag"] = str(hash(str(data)))
+    return response
 
-@app.route("/add", methods=["GET", "POST"])
-def add_book():
-    form = BookForm()
-    if form.validate_on_submit():
-        book = Book(title=form.title.data, author=form.author.data)
-        db.session.add(book)
-        db.session.commit()
-        return redirect(url_for("index"))
-    return render_template("add_book.html", form=form)
 
-@app.route("/borrow/<int:book_id>", methods=["GET", "POST"])
-def borrow(book_id):
+# GET one book
+@app.route("/api/books/<int:book_id>", methods=["GET"])
+def get_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    return jsonify({"id": book.id, "title": book.title, "author": book.author, "available": book.available})
+
+
+# POST create book
+@app.route("/api/books", methods=["POST"])
+def create_book():
+    data = request.json
+    if not data or "title" not in data or "author" not in data:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    book = Book(title=data["title"], author=data["author"])
+    db.session.add(book)
+    db.session.commit()
+    return jsonify({"message": "Book created", "id": book.id}), 201
+
+
+# PUT update book
+@app.route("/api/books/<int:book_id>", methods=["PUT"])
+def update_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    data = request.json
+    book.title = data.get("title", book.title)
+    book.author = data.get("author", book.author)
+    book.available = data.get("available", book.available)
+    db.session.commit()
+    return jsonify({"message": "Book updated"})
+
+
+# DELETE book
+@app.route("/api/books/<int:book_id>", methods=["DELETE"])
+def delete_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    db.session.delete(book)
+    db.session.commit()
+    return jsonify({"message": "Book deleted"})
+
+
+# Borrow book
+@app.route("/api/borrow/<int:book_id>", methods=["POST"])
+def borrow_book(book_id):
     book = Book.query.get_or_404(book_id)
     if not book.available:
-        return "Sách đã được mượn"
-    form = BorrowForm()
-    if form.validate_on_submit():
-        borrow = Borrow(book_id=book.id, borrower=form.borrower.data)
-        book.available = False
-        db.session.add(borrow)
-        db.session.commit()
-        return redirect(url_for("index"))
-    return render_template("borrow.html", form=form, book=book)
+        return jsonify({"error": "Book not available"}), 400
+    
+    data = request.json
+    if not data or "borrower" not in data:
+        return jsonify({"error": "Borrower required"}), 400
+    
+    borrow = Borrow(book_id=book.id, borrower=data["borrower"])
+    book.available = False
+    db.session.add(borrow)
+    db.session.commit()
+    return jsonify({"message": "Book borrowed", "borrow_id": borrow.id})
 
-@app.route("/return/<int:borrow_id>")
+
+# Return book
+@app.route("/api/return/<int:borrow_id>", methods=["PUT"])
 def return_book(borrow_id):
     borrow = Borrow.query.get_or_404(borrow_id)
+    if borrow.returned:
+        return jsonify({"error": "Book already returned"}), 400
+    
     borrow.returned = True
     book = Book.query.get(borrow.book_id)
     book.available = True
     db.session.commit()
-    return redirect(url_for("index"))
+    return jsonify({"message": "Book returned"})
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
