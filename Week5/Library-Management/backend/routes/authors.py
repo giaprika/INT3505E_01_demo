@@ -7,7 +7,7 @@ authors_bp = Blueprint('authors', __name__)
 def list_authors():
     search = request.args.get('search', '', type=str)
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 6, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
 
     q = Author.query
     if search:

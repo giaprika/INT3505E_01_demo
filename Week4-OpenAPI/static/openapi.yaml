@@ -1,0 +1,728 @@
+openapi: 3.0.3
+info:
+  title: Library Management API
+  version: 1.0.0
+  description: API quản lý thư viện (Books, Authors, Readers, Records)
+servers:
+  - url: http://localhost:5000
+
+paths:
+  # --------- Books ----------
+  /api/books/:
+    get:
+      summary: List books with pagination and search
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by title or genre
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: List of books
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  books:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+
+    post:
+      summary: Create a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                genre:
+                  type: string
+                published_year:
+                  type: integer
+                author_ids:
+                  type: array
+                  items:
+                    type: integer
+                copies:
+                  type: integer
+      responses:
+        "201":
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  book_id:
+                    type: integer
+        "400":
+          description: Bad request
+
+  /api/books/{book_id}:
+    get:
+      summary: Get book by ID
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookDetail"
+        "404":
+          description: Book not found
+
+    put:
+      summary: Update book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                genre:
+                  type: string
+                published_year:
+                  type: integer
+                author_ids:
+                  type: array
+                  items:
+                    type: integer
+                add_copies:
+                  type: integer
+                remove_copy_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "200":
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Book not found
+
+    delete:
+      summary: Delete book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Book not found
+
+  # --------- Authors ----------
+  /api/authors/:
+    get:
+      summary: List authors with pagination and search
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 6
+      responses:
+        "200":
+          description: List of authors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Author"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+
+    post:
+      summary: Create author
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Author created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  author_id:
+                    type: integer
+        "400":
+          description: Bad request
+
+  /api/authors/{author_id}:
+    get:
+      summary: Get author by ID
+      parameters:
+        - name: author_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Author details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorDetail"
+        "404":
+          description: Author not found
+    put:
+      summary: Update author
+      parameters:
+        - name: author_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Author updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Author not found
+    delete:
+      summary: Delete author
+      parameters:
+        - name: author_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Author deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Author not found
+
+  # --------- Readers ----------
+  /api/readers/:
+    get:
+      summary: List readers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 6
+      responses:
+        "200":
+          description: List of readers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  readers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Reader"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+    post:
+      summary: Create reader
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Reader created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reader_id:
+                    type: integer
+        "400":
+          description: Bad request
+
+  /api/readers/{reader_id}:
+    get:
+      summary: Get reader by ID
+      parameters:
+        - name: reader_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reader detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReaderDetail"
+        "404":
+          description: Reader not found
+    put:
+      summary: Update reader
+      parameters:
+        - name: reader_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Reader updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Reader not found
+    delete:
+      summary: Delete reader
+      parameters:
+        - name: reader_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reader deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Reader not found
+
+  # --------- Records ----------
+  /api/records/:
+    get:
+      summary: List records (optionally search by reader)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: List of records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Record"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+    post:
+      summary: Create record (borrow book)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - book_copy_id
+                - reader_id
+              properties:
+                book_copy_id:
+                  type: integer
+                reader_id:
+                  type: integer
+      responses:
+        "201":
+          description: Record created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  record_id:
+                    type: integer
+        "400":
+          description: Bad request or book unavailable
+
+  /api/records/{record_id}:
+    get:
+      summary: Get record by ID
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Record details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Record"
+        "404":
+          description: Record not found
+    put:
+      summary: Update record (status/return_date)
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                return_date:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Record not found
+    delete:
+      summary: Delete record
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Record not found
+
+  /api/records/{record_id}/return:
+    put:
+      summary: Return borrowed book
+      parameters:
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Record not found
+
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        book_id:
+          type: integer
+        title:
+          type: string
+        genre:
+          type: string
+        published_year:
+          type: integer
+        authors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+        total_copies:
+          type: integer
+        available_copies:
+          type: integer
+
+    BookDetail:
+      allOf:
+        - $ref: "#/components/schemas/Book"
+        - type: object
+          properties:
+            copies:
+              type: array
+              items:
+                type: object
+                properties:
+                  book_copy_id:
+                    type: integer
+                  available:
+                    type: boolean
+
+    Author:
+      type: object
+      properties:
+        author_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        birth_date:
+          type: string
+          format: date
+
+    AuthorDetail:
+      allOf:
+        - $ref: "#/components/schemas/Author"
+        - type: object
+          properties:
+            books:
+              type: array
+              items:
+                type: object
+                properties:
+                  book_id:
+                    type: integer
+                  title:
+                    type: string
+
+    Reader:
+      type: object
+      properties:
+        reader_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        birth_date:
+          type: string
+          format: date
+        join_date:
+          type: string
+          format: date
+
+    ReaderDetail:
+      allOf:
+        - $ref: "#/components/schemas/Reader"
+        - type: object
+          properties:
+            records:
+              type: array
+              items:
+                $ref: "#/components/schemas/Record"
+
+    Record:
+      type: object
+      properties:
+        record_id:
+          type: integer
+        book_copy_id:
+          type: integer
+        reader_id:
+          type: integer
+        reader:
+          type: string
+        borrow_date:
+          type: string
+          format: date
+        return_date:
+          type: string
+          format: date
+        status:
+          type: string

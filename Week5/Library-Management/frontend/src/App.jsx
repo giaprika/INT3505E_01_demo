@@ -12,19 +12,27 @@ export default function App() {
           📚 Library Management System
         </h1>
 
-        <nav className="flex justify-center gap-4 mb-6">
-          <Link to="/books" className="text-blue-500 hover:underline">
-            Books
-          </Link>
-          <Link to="/authors" className="text-blue-500 hover:underline">
-            Authors
-          </Link>
-          <Link to="/readers" className="text-blue-500 hover:underline">
-            Readers
-          </Link>
-          <Link to="/records" className="text-blue-500 hover:underline">
-            Records
-          </Link>
+        <nav className="flex justify-center gap-16 mb-6">
+          <div className="mx-4">
+            <Link to="/books" className="text-blue-500 hover:underline">
+              Books
+            </Link>
+          </div>
+          <div className="mx-4">
+            <Link to="/authors" className="text-blue-500 hover:underline">
+              Authors
+            </Link>
+          </div>
+          <div className="mx-4">
+            <Link to="/readers" className="text-blue-500 hover:underline">
+              Readers
+            </Link>
+          </div>
+          <div className="mx-4">
+            <Link to="/records" className="text-blue-500 hover:underline">
+              Records
+            </Link>
+          </div>
         </nav>
 
         <Routes>
