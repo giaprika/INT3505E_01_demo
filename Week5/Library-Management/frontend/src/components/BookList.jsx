@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import API from "../api/api";
 
 export default function BookList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1");
+  const searchQuery = searchParams.get("search") || "";
   const [books, setBooks] = useState([]);
-  const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchBooks = async () => {
     const res = await API.get(
-      `/books/?page=${page}&per_page=6&search=${encodeURIComponent(
+      `/books/?page=${page}&per_page=5&search=${encodeURIComponent(
         searchQuery
       )}`
     );
@@ -21,6 +23,14 @@ export default function BookList() {
     fetchBooks();
   }, [page, searchQuery]);
 
+  const handlePageChange = (newPage) => {
+    setSearchParams({ page: newPage, search: searchQuery });
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchParams({ page: 1, search: e.target.value });
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <h2 className="text-xl font-semibold mb-3">📚 Books</h2>
@@ -29,10 +39,7 @@ export default function BookList() {
           type="text"
           placeholder="Search books..."
           value={searchQuery}
-          onChange={(e) => {
-            setPage(1);
-            setSearchQuery(e.target.value);
-          }}
+          onChange={handleSearchChange}
           className="border px-3 py-2 w-full rounded"
         />
       </div>
@@ -65,13 +72,16 @@ export default function BookList() {
       </table>
 
       <div className="flex justify-between mt-3">
-        <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+        <button disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
           Prev
         </button>
         <span>
           Page {page} / {pages}
         </span>
-        <button disabled={page >= pages} onClick={() => setPage(page + 1)}>
+        <button
+          disabled={page >= pages}
+          onClick={() => handlePageChange(page + 1)}
+        >
           Next
         </button>
       </div>

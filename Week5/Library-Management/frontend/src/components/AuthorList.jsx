@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import API from "../api/api";
 
 export default function AuthorList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1");
+  const searchQuery = searchParams.get("search") || "";
   const [authors, setAuthors] = useState([]);
-  const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAuthors = async () => {
     const res = await API.get(
-      `/authors/?page=${page}&per_page=6&search=${encodeURIComponent(
+      `/authors/?page=${page}&per_page=5&search=${encodeURIComponent(
         searchQuery
       )}`
     );
@@ -21,6 +23,11 @@ export default function AuthorList() {
     fetchAuthors();
   }, [page, searchQuery]);
 
+  const handlePageChange = (newPage) =>
+    setSearchParams({ page: newPage, search: searchQuery });
+  const handleSearchChange = (e) =>
+    setSearchParams({ page: 1, search: e.target.value });
+
   return (
     <div className="max-w-4xl mx-auto">
       <h2 className="text-xl font-semibold mb-3">👤 Authors</h2>
@@ -29,10 +36,7 @@ export default function AuthorList() {
           type="text"
           placeholder="Search authors..."
           value={searchQuery}
-          onChange={(e) => {
-            setPage(1);
-            setSearchQuery(e.target.value);
-          }}
+          onChange={handleSearchChange}
           className="border px-3 py-2 w-full rounded"
         />
       </div>
@@ -65,13 +69,16 @@ export default function AuthorList() {
       </table>
 
       <div className="flex justify-between mt-3">
-        <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+        <button disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
           Prev
         </button>
         <span>
           Page {page} / {pages}
         </span>
-        <button disabled={page >= pages} onClick={() => setPage(page + 1)}>
+        <button
+          disabled={page >= pages}
+          onClick={() => handlePageChange(page + 1)}
+        >
           Next
         </button>
       </div>
