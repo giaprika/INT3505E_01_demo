@@ -7,6 +7,37 @@ servers:
   - url: http://localhost:5000
 
 paths:
+  # --------- Auth ----------
+  /api/auth/login:
+    post:
+      summary: User login to obtain JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Unauthorized
+
   # --------- Books ----------
   /api/books/:
     get:
@@ -726,3 +757,14 @@ components:
           format: date
         status:
           type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Enter your JWT token here.
+
+security:
+  - BearerAuth: []
