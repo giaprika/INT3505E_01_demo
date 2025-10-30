@@ -71,10 +71,18 @@ def _now():
     return datetime.utcnow()
 
 def create_access(user):
+    role = user['role']
+    scopes = []
+    if role == "admin":
+        scopes = ["read:users", "write:users", "delete:users", "read:profile"]
+    elif role == "user":
+        scopes = ["read:profile"]
+    
     payload = {
         "sub": user['id'],
         "usr": user['username'],
         "role": user['role'],
+        "scopes": scopes,
         "typ": "access",
         "iat": _now(),
         "exp": _now() + timedelta(minutes=ACCESS_MIN)
@@ -144,6 +152,30 @@ def require_admin(fn):
             return jsonify({"error": "admin_only"}), 403
         return fn(*a, **kw)
     return wrapper
+
+def require_scope(required_scope):
+    def decorator(fn):
+        @wraps(fn)
+        @require_token
+        def wrapper(*a, **kw):
+            scopes = request.user.get("scopes", [])
+            if required_scope not in scopes:
+                return jsonify({"error": f"missing_scope:{required_scope}"}), 403
+            return fn(*a, **kw)
+        return wrapper
+    return decorator
+
+
+@APP.route('/profile', methods=['GET'])
+@require_scope("read:profile")
+def profile():
+    u = USERS.get(request.user['usr'])
+    return jsonify({
+        "username": u['username'],
+        "email": u['email'],
+        "role": u['role'],
+        "name": u['name']
+    }), 200
 
 
 @APP.route('/login', methods=['POST'])
