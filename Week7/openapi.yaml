@@ -1,0 +1,312 @@
+openapi: 3.0.3
+info:
+  title: Library Management API
+  version: 1.0.0
+  description: API quản lý thư viện (Auth và Books)
+
+servers:
+  - url: http://localhost:5000
+
+tags:
+  - name: Auth
+    description: Authentication and Token Management
+  - name: Books
+    description: CRUD operations for Books
+
+paths:
+  # --------- Auth ----------
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Bad request
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login to obtain JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Unauthorized
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh JWT token
+      responses:
+        "200":
+          description: New token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        "401":
+          description: Invalid or expired refresh token
+
+  # --------- Books ----------
+  /api/books:
+    get:
+      tags:
+        - Books
+      summary: List all books with pagination and search
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by title or genre
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: List of books
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  books:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+
+    post:
+      tags:
+        - Books
+      summary: Create a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookCreate"
+      responses:
+        "201":
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  book_id:
+                    type: integer
+        "400":
+          description: Bad request
+
+  /api/books/{book_id}:
+    get:
+      tags:
+        - Books
+      summary: Get book by ID
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookDetail"
+        "404":
+          description: Book not found
+
+    put:
+      tags:
+        - Books
+      summary: Update book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookUpdate"
+      responses:
+        "200":
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Book not found
+
+    delete:
+      tags:
+        - Books
+      summary: Delete book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Book not found
+
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        book_id:
+          type: integer
+        title:
+          type: string
+        genre:
+          type: string
+        published_year:
+          type: integer
+        authors:
+          type: array
+          items:
+            type: string
+        total_copies:
+          type: integer
+        available_copies:
+          type: integer
+
+    BookDetail:
+      allOf:
+        - $ref: "#/components/schemas/Book"
+        - type: object
+          properties:
+            copies:
+              type: array
+              items:
+                type: object
+                properties:
+                  book_copy_id:
+                    type: integer
+                  available:
+                    type: boolean
+
+    BookCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        published_year:
+          type: integer
+        authors:
+          type: array
+          items:
+            type: string
+        copies:
+          type: integer
+
+    BookUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        published_year:
+          type: integer
+        authors:
+          type: array
+          items:
+            type: string
+        add_copies:
+          type: integer
+        remove_copy_ids:
+          type: array
+          items:
+            type: integer
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your JWT token.
+
+security:
+  - BearerAuth: []

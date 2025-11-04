@@ -1,0 +1,439 @@
+openapi: 3.0.3
+info:
+  description: API quản lý thư viện (Auth và Books)
+  title: Library Management API
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+security:
+- BearerAuth: []
+tags:
+- description: Authentication and Token Management
+  name: Auth
+- description: CRUD operations for Books
+  name: Books
+paths:
+  /api/auth/login:
+    post:
+      operationId: api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_api_auth_register_post_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_auth_login_post_200_response'
+          description: Successful login
+        "401":
+          description: Unauthorized
+      summary: User login to obtain JWT token
+      tags:
+      - Auth
+      x-openapi-router-controller: openapi_server.controllers.auth_controller
+  /api/auth/refresh:
+    post:
+      operationId: api_auth_refresh_post
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_auth_login_post_200_response'
+          description: New token issued
+        "401":
+          description: Invalid or expired refresh token
+      summary: Refresh JWT token
+      tags:
+      - Auth
+      x-openapi-router-controller: openapi_server.controllers.auth_controller
+  /api/auth/register:
+    post:
+      operationId: api_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_api_auth_register_post_request'
+        required: true
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Bad request
+      summary: Register a new user
+      tags:
+      - Auth
+      x-openapi-router-controller: openapi_server.controllers.auth_controller
+  /api/books:
+    get:
+      operationId: api_books_get
+      parameters:
+      - description: Search by title or genre
+        explode: true
+        in: query
+        name: search
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: per_page
+        required: false
+        schema:
+          default: 5
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_books_get_200_response'
+          description: List of books
+      summary: List all books with pagination and search
+      tags:
+      - Books
+      x-openapi-router-controller: openapi_server.controllers.books_controller
+    post:
+      operationId: api_books_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_books_post_201_response'
+          description: Book created successfully
+        "400":
+          description: Bad request
+      summary: Create a new book
+      tags:
+      - Books
+      x-openapi-router-controller: openapi_server.controllers.books_controller
+  /api/books/{book_id}:
+    delete:
+      operationId: api_books_book_id_delete
+      parameters:
+      - explode: false
+        in: path
+        name: book_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_books__book_id__put_200_response'
+          description: Book deleted
+        "404":
+          description: Book not found
+      summary: Delete book
+      tags:
+      - Books
+      x-openapi-router-controller: openapi_server.controllers.books_controller
+    get:
+      operationId: api_books_book_id_get
+      parameters:
+      - explode: false
+        in: path
+        name: book_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+          description: Book details
+        "404":
+          description: Book not found
+      summary: Get book by ID
+      tags:
+      - Books
+      x-openapi-router-controller: openapi_server.controllers.books_controller
+    put:
+      operationId: api_books_book_id_put
+      parameters:
+      - explode: false
+        in: path
+        name: book_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdate'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_api_books__book_id__put_200_response'
+          description: Book updated successfully
+        "404":
+          description: Book not found
+      summary: Update book
+      tags:
+      - Books
+      x-openapi-router-controller: openapi_server.controllers.books_controller
+components:
+  schemas:
+    Book:
+      example:
+        available_copies: 5
+        total_copies: 1
+        published_year: 6
+        genre: genre
+        book_id: 0
+        title: title
+        authors:
+        - authors
+        - authors
+      properties:
+        book_id:
+          title: book_id
+          type: integer
+        title:
+          title: title
+          type: string
+        genre:
+          title: genre
+          type: string
+        published_year:
+          title: published_year
+          type: integer
+        authors:
+          items:
+            type: string
+          title: authors
+          type: array
+        total_copies:
+          title: total_copies
+          type: integer
+        available_copies:
+          title: available_copies
+          type: integer
+      title: Book
+      type: object
+    BookDetail:
+      allOf:
+      - $ref: '#/components/schemas/Book'
+      - properties:
+          copies:
+            items:
+              $ref: '#/components/schemas/BookDetail_allOf_copies'
+            type: array
+        type: object
+      example:
+        available_copies: 5
+        total_copies: 1
+        copies:
+        - available: true
+          book_copy_id: 5
+        - available: true
+          book_copy_id: 5
+        published_year: 6
+        genre: genre
+        book_id: 0
+        title: title
+        authors:
+        - authors
+        - authors
+      title: BookDetail
+    BookCreate:
+      example:
+        copies: 6
+        published_year: 0
+        genre: genre
+        title: title
+        authors:
+        - authors
+        - authors
+      properties:
+        title:
+          title: title
+          type: string
+        genre:
+          title: genre
+          type: string
+        published_year:
+          title: published_year
+          type: integer
+        authors:
+          items:
+            type: string
+          title: authors
+          type: array
+        copies:
+          title: copies
+          type: integer
+      required:
+      - title
+      title: BookCreate
+      type: object
+    BookUpdate:
+      example:
+        add_copies: 6
+        published_year: 0
+        remove_copy_ids:
+        - 1
+        - 1
+        genre: genre
+        title: title
+        authors:
+        - authors
+        - authors
+      properties:
+        title:
+          title: title
+          type: string
+        genre:
+          title: genre
+          type: string
+        published_year:
+          title: published_year
+          type: integer
+        authors:
+          items:
+            type: string
+          title: authors
+          type: array
+        add_copies:
+          title: add_copies
+          type: integer
+        remove_copy_ids:
+          items:
+            type: integer
+          title: remove_copy_ids
+          type: array
+      title: BookUpdate
+      type: object
+    _api_auth_register_post_request:
+      properties:
+        username:
+          title: username
+          type: string
+        password:
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: _api_auth_register_post_request
+      type: object
+    _api_auth_login_post_200_response:
+      example:
+        token: token
+      properties:
+        token:
+          title: token
+          type: string
+      title: _api_auth_login_post_200_response
+      type: object
+    _api_books_get_200_response:
+      example:
+        total: 5
+        books:
+        - available_copies: 5
+          total_copies: 1
+          published_year: 6
+          genre: genre
+          book_id: 0
+          title: title
+          authors:
+          - authors
+          - authors
+        - available_copies: 5
+          total_copies: 1
+          published_year: 6
+          genre: genre
+          book_id: 0
+          title: title
+          authors:
+          - authors
+          - authors
+        pages: 7
+        page: 2
+      properties:
+        books:
+          items:
+            $ref: '#/components/schemas/Book'
+          title: books
+          type: array
+        total:
+          title: total
+          type: integer
+        page:
+          title: page
+          type: integer
+        pages:
+          title: pages
+          type: integer
+      title: _api_books_get_200_response
+      type: object
+    _api_books_post_201_response:
+      example:
+        book_id: 0
+      properties:
+        book_id:
+          title: book_id
+          type: integer
+      title: _api_books_post_201_response
+      type: object
+    _api_books__book_id__put_200_response:
+      example:
+        message: message
+      properties:
+        message:
+          title: message
+          type: string
+      title: _api_books__book_id__put_200_response
+      type: object
+    BookDetail_allOf_copies:
+      example:
+        available: true
+        book_copy_id: 5
+      properties:
+        book_copy_id:
+          title: book_copy_id
+          type: integer
+        available:
+          title: available
+          type: boolean
+      title: BookDetail_allOf_copies
+      type: object
+  securitySchemes:
+    BearerAuth:
+      bearerFormat: JWT
+      description: Enter your JWT token.
+      scheme: bearer
+      type: http
+      x-bearerInfoFunc: openapi_server.controllers.security_controller.info_from_BearerAuth

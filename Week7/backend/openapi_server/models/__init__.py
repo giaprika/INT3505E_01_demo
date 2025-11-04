@@ -1,0 +1,12 @@
+# flake8: noqa
+# import models into model package
+from openapi_server.models.api_auth_login_post200_response import ApiAuthLoginPost200Response
+from openapi_server.models.api_auth_register_post_request import ApiAuthRegisterPostRequest
+from openapi_server.models.api_books_book_id_put200_response import ApiBooksBookIdPut200Response
+from openapi_server.models.api_books_get200_response import ApiBooksGet200Response
+from openapi_server.models.api_books_post201_response import ApiBooksPost201Response
+from openapi_server.models.book import Book
+from openapi_server.models.book_create import BookCreate
+from openapi_server.models.book_detail import BookDetail
+from openapi_server.models.book_detail_all_of_copies import BookDetailAllOfCopies
+from openapi_server.models.book_update import BookUpdate
