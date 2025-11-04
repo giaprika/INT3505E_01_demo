@@ -3,6 +3,7 @@
 import connexion
 
 from openapi_server import encoder
+from openapi_server import db
 
 
 def main():
@@ -11,6 +12,11 @@ def main():
     app.add_api('openapi.yaml',
                 arguments={'title': 'Library Management API'},
                 pythonic_params=True)
+    
+    try:
+        db.init_db()
+    except Exception:
+        raise
 
     app.run(port=8080)
 

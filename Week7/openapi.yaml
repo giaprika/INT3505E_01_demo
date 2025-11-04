@@ -19,6 +19,7 @@ paths:
     post:
       tags:
         - Auth
+      security: []
       summary: Register a new user
       requestBody:
         required: true
@@ -44,6 +45,7 @@ paths:
     post:
       tags:
         - Auth
+      security: []
       summary: User login to obtain JWT token
       requestBody:
         required: true
@@ -76,6 +78,7 @@ paths:
     post:
       tags:
         - Auth
+      security: []
       summary: Refresh JWT token
       responses:
         "200":

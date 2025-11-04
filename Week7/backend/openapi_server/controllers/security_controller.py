@@ -1,4 +1,5 @@
 from typing import List
+from openapi_server.controllers import auth_controller
 
 
 def info_from_BearerAuth(token):
@@ -12,5 +13,6 @@ def info_from_BearerAuth(token):
     :return: Decoded token information or None if token is invalid
     :rtype: dict | None
     """
-    return {'uid': 'user_id'}
+    info = auth_controller.verify_token(token)
+    return info
 
