@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from models import db, Record, BookCopy, Reader
 from datetime import date
 
 records_bp = Blueprint('records', __name__)
 
 @records_bp.route('/', methods=['GET'])
+@jwt_required()
 def list_records():
     search = request.args.get('search', '', type=str)  # search by reader name
     page = request.args.get('page', 1, type=int)
@@ -29,6 +31,7 @@ def list_records():
     return jsonify({'records': data, 'total': p.total, 'page': p.page, 'pages': p.pages})
 
 @records_bp.route('/<int:record_id>', methods=['GET'])
+@jwt_required()
 def get_record(record_id):
     r = Record.query.get_or_404(record_id)
     return jsonify({
@@ -41,6 +44,7 @@ def get_record(record_id):
     })
 
 @records_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_record():
     """
     Body: { book_copy_id: int, reader_id: int }
@@ -63,6 +67,7 @@ def create_record():
     return jsonify({'record_id': rec.record_id}), 201
 
 @records_bp.route('/<int:record_id>/return', methods=['PUT'])
+@jwt_required()
 def return_record(record_id):
     r = Record.query.get_or_404(record_id)
     if r.status == 'Returned':
@@ -76,6 +81,7 @@ def return_record(record_id):
     return jsonify({'message': 'returned'})
 
 @records_bp.route('/<int:record_id>', methods=['PUT'])
+@jwt_required()
 def update_record(record_id):
     r = Record.query.get_or_404(record_id)
     data = request.json or {}
@@ -92,6 +98,7 @@ def update_record(record_id):
     return jsonify({'message': 'updated'})
 
 @records_bp.route('/<int:record_id>', methods=['DELETE'])
+@jwt_required()
 def delete_record(record_id):
     r = Record.query.get_or_404(record_id)
     # optionally mark copy available if record was Borrowed

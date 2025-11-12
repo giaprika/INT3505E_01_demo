@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from models import db, Book, Author, BookCopy
 
 books_bp = Blueprint('books', __name__)
 
 @books_bp.route('/', methods=['GET'])
+@jwt_required()
 def list_books():
     search = request.args.get('search', '', type=str)
     page = request.args.get('page', 1, type=int)
@@ -31,6 +33,7 @@ def list_books():
     return jsonify({'books': data, 'total': p.total, 'page': p.page, 'pages': p.pages})
 
 @books_bp.route('/<int:book_id>', methods=['GET'])
+@jwt_required()
 def get_book(book_id):
     b = Book.query.get_or_404(book_id)
     return jsonify({
@@ -43,6 +46,7 @@ def get_book(book_id):
     })
 
 @books_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_book():
     data = request.json or {}
     title = data.get('title')
@@ -64,6 +68,7 @@ def create_book():
     return jsonify({'book_id': b.book_id}), 201
 
 @books_bp.route('/<int:book_id>', methods=['PUT'])
+@jwt_required()
 def update_book(book_id):
     b = Book.query.get_or_404(book_id)
     data = request.json or {}
@@ -90,6 +95,7 @@ def update_book(book_id):
     return jsonify({'message': 'updated'})
 
 @books_bp.route('/<int:book_id>', methods=['DELETE'])
+@jwt_required()
 def delete_book(book_id):
     b = Book.query.get_or_404(book_id)
     db.session.delete(b)

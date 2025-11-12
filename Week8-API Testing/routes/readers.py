@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from models import db, Reader
 
 readers_bp = Blueprint('readers', __name__)
 
 @readers_bp.route('/', methods=['GET'])
+@jwt_required()
 def list_readers():
     search = request.args.get('search', '', type=str)
     page = request.args.get('page', 1, type=int)
@@ -25,6 +27,7 @@ def list_readers():
     return jsonify({'readers': data, 'total': p.total, 'page': p.page, 'pages': p.pages})
 
 @readers_bp.route('/<int:reader_id>', methods=['GET'])
+@jwt_required()
 def get_reader(reader_id):
     r = Reader.query.get_or_404(reader_id)
     return jsonify({
@@ -39,6 +42,7 @@ def get_reader(reader_id):
     })
 
 @readers_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_reader():
     data = request.json or {}
     name = data.get('name')
@@ -61,6 +65,7 @@ def create_reader():
     return jsonify({'reader_id': r.reader_id}), 201
 
 @readers_bp.route('/<int:reader_id>', methods=['PUT'])
+@jwt_required()
 def update_reader(reader_id):
     r = Reader.query.get_or_404(reader_id)
     data = request.json or {}
@@ -78,6 +83,7 @@ def update_reader(reader_id):
     return jsonify({'message': 'updated'})
 
 @readers_bp.route('/<int:reader_id>', methods=['DELETE'])
+@jwt_required()
 def delete_reader(reader_id):
     r = Reader.query.get_or_404(reader_id)
     db.session.delete(r)

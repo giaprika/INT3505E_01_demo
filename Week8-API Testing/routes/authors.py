@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from models import db, Author
 
 authors_bp = Blueprint('authors', __name__)
 
 @authors_bp.route('/', methods=['GET'])
+@jwt_required()
 def list_authors():
     search = request.args.get('search', '', type=str)
     page = request.args.get('page', 1, type=int)
@@ -24,6 +26,7 @@ def list_authors():
 
 # get by id
 @authors_bp.route('/<int:author_id>', methods=['GET'])
+@jwt_required()
 def get_author(author_id):
     a = Author.query.get_or_404(author_id)
     return jsonify({
@@ -36,6 +39,7 @@ def get_author(author_id):
 
 # create
 @authors_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_author():
     data = request.json or {}
     name = data.get('name')
@@ -54,6 +58,7 @@ def create_author():
 
 # update
 @authors_bp.route('/<int:author_id>', methods=['PUT'])
+@jwt_required()
 def update_author(author_id):
     a = Author.query.get_or_404(author_id)
     data = request.json or {}
@@ -70,6 +75,7 @@ def update_author(author_id):
 
 # delete
 @authors_bp.route('/<int:author_id>', methods=['DELETE'])
+@jwt_required()
 def delete_author(author_id):
     a = Author.query.get_or_404(author_id)
     db.session.delete(a)

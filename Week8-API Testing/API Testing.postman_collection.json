@@ -1,0 +1,321 @@
+{
+	"info": {
+		"_postman_id": "046744f7-fb30-4c6a-be6d-dbebc071aabb",
+		"name": "API Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46155064",
+		"_collection_link": "https://giap-7868747.postman.co/workspace/Giap's-Workspace~5f50ccdc-cfa3-42ca-8219-81a36b6ccb7c/collection/46155064-046744f7-fb30-4c6a-be6d-dbebc071aabb?action=share&source=collection_link&creator=46155064"
+	},
+	"item": [
+		{
+			"name": "books",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Books list returned\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"    pm.expect(res).to.have.property(\"books\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/books",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"books"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "readers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Missing Authorization Header message\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"    pm.expect(res).to.have.property(\"msg\");\r",
+							"    pm.expect(res.msg).to.eql(\"Missing Authorization Header\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/readers",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"readers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "authors",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Error message is 'name required'\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"    pm.expect(res).to.have.property(\"error\");\r",
+							"    pm.expect(res.error).to.eql(\"name required\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test_author@example.com\",\r\n  \"birth_date\": \"1980-01-01\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/authors",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"authors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "records",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Records list returned\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"    pm.expect(res).to.have.property(\"records\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/records",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Access token returned\", function () {\r",
+							"    const res = pm.response.json();\r",
+							"    pm.expect(res).to.have.property(\"access_token\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"admin@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/admin/login",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"admin",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"pm.sendRequest({\r",
+					"    url: pm.environment.get(\"base_url\") + \"/api/admin/login\",\r",
+					"    method: \"POST\",\r",
+					"    header: {\"Content-Type\": \"application/json\"},\r",
+					"    body: {\r",
+					"        mode: \"raw\",\r",
+					"        raw: JSON.stringify({\r",
+					"            email: pm.environment.get(\"admin_email\"),\r",
+					"            password: pm.environment.get(\"admin_password\")\r",
+					"        })\r",
+					"    }\r",
+					"}, function (err, res) {\r",
+					"    if (!err) {\r",
+					"        const token = res.json().access_token;\r",
+					"        pm.environment.set(\"access_token\", token);\r",
+					"    }\r",
+					"});\r",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
