@@ -5,6 +5,15 @@ from datetime import datetime
 
 bp = Blueprint('v1', __name__)
 
+@bp.after_request
+def add_deprecation_headers(response):
+    response.headers['Warning'] = '299 - This API v1 is deprecated. Please migrate to v2.'
+    response.headers['Deprecation'] = 'true'
+    response.headers['Sunset'] = 'Wed, 31 Dec 2025 23:59:59 GMT'
+    response.headers['Link'] = '</api/v2/payments>; rel="successor-version"'
+    
+    return response
+
 # API V1: Chỉ hỗ trợ thẻ, tiền tệ mặc định là VND
 
 @bp.route('/', methods=['POST'])
