@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from db import init_db
 from routes.v1 import bp as v1_bp
 from routes.v2 import bp as v2_bp
+from routes.payments import bp as payments_bp
 
 app = Flask(__name__)
 
@@ -11,6 +12,7 @@ init_db(app)
 
 app.register_blueprint(v1_bp, url_prefix='/api/v1/payments')
 app.register_blueprint(v2_bp, url_prefix='/api/v2/payments')
+app.register_blueprint(payments_bp, url_prefix='/api/payments')
 
 @app.route('/')
 def index():
