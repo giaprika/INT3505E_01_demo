@@ -2,12 +2,18 @@ from flask import Flask, jsonify, request
 from db import init_db
 from routes.payments import bp as payments_bp
 from utils.logger import logger
+from utils.limiter import limiter
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
 
 app.config["MONGO_URI"] = "mongodb://localhost:27017/payment_db"
 
 init_db(app)
+limiter.init_app(app)
+
+metrics = PrometheusMetrics(app, group_by='endpoint')
+metrics.info("app_info", "Payment API Monitoring")
 
 @app.before_request
 def log_request():
@@ -53,7 +59,9 @@ def index():
 
 @app.errorhandler(404)
 def not_found(e):
+    if request.path == '/metrics':
+        return e  # trả default handler của Flask / Prometheus
     return jsonify({"error": "Endpoint not found"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, use_reloader=False)

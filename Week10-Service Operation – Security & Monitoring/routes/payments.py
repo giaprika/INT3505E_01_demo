@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from controllers import v1, v2
+from utils.limiter import limiter
 
 bp = Blueprint('payments', __name__)
 
@@ -13,6 +14,7 @@ def get_api_version():
 
 
 @bp.route('/', methods=['POST'])
+@limiter.limit("10 per minute")
 def create_dispatch():
     version = get_api_version()
     if version == '1':
@@ -23,6 +25,7 @@ def create_dispatch():
         return jsonify({"error": f"Version {version} not supported"}), 400
 
 @bp.route('/', methods=['GET'])
+@limiter.limit("30 per minute")
 def get_list_dispatch():
     version = get_api_version()
     if version == '1':
@@ -33,6 +36,7 @@ def get_list_dispatch():
         return jsonify({"error": "Version not supported"}), 400
 
 @bp.route('/<id>', methods=['GET'])
+@limiter.limit("30 per minute")
 def get_one_dispatch(id):
     version = get_api_version()
     if version == '1':
@@ -43,6 +47,7 @@ def get_one_dispatch(id):
         return jsonify({"error": "Version not supported"}), 400
 
 @bp.route('/<id>', methods=['PUT'])
+@limiter.limit("10 per minute")
 def update_dispatch(id):
     version = get_api_version()
     if version == '1':
@@ -53,6 +58,7 @@ def update_dispatch(id):
         return jsonify({"error": "Version not supported"}), 400
 
 @bp.route('/<id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_dispatch(id):
     version = get_api_version()
     if version == '1':
