@@ -18,8 +18,11 @@ services:
       - "5000:5000"
     environment:
       - RABBIT_URL=amqp://admin:admin@rabbitmq:5672/
+      - WEBHOOK_SECRET=webhook_secret
     depends_on:
       - rabbitmq
+    volumes:
+      - ./webhook-server:/app
 
   notification-worker:
     build: ./notification-worker
@@ -28,6 +31,8 @@ services:
       - RABBIT_URL=amqp://admin:admin@rabbitmq:5672/
     depends_on:
       - rabbitmq
+    volumes:
+      - ./notification-worker:/app
 
 networks:
   default:
