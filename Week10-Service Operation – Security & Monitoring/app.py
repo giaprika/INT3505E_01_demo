@@ -4,6 +4,9 @@ from routes.payments import bp as payments_bp
 from utils.logger import logger
 from utils.limiter import limiter
 from prometheus_flask_exporter import PrometheusMetrics
+from pybreaker import CircuitBreaker, CircuitBreakerError
+import random
+import time
 
 app = Flask(__name__)
 
@@ -62,6 +65,51 @@ def not_found(e):
     if request.path == '/metrics':
         return e  # trả default handler của Flask / Prometheus
     return jsonify({"error": "Endpoint not found"}), 404
+
+
+
+circuit = CircuitBreaker(fail_max=3, reset_timeout=10)
+
+# Hàm giả lập gọi service ngoài
+def external_service_call():
+    if random.random() > 0.4:
+        time.sleep(0.1)
+        raise ConnectionError("External Service bị lỗi hoặc quá tải")
+    return "Dữ liệu thành công từ Service B"
+
+@app.route('/api/data')
+def get_protected_data():
+    try:
+        result = circuit.call(external_service_call)
+        
+        return jsonify({
+            "status": "Thành công",
+            "message": result,
+            "breaker_state": circuit.current_state
+        }), 200
+
+    except CircuitBreakerError:
+        return jsonify({
+            "status": "Lỗi",
+            "message": "Hệ thống phụ đang bị ngắt mạch (Circuit OPEN).",
+            "breaker_state": circuit.current_state,
+            "action": "FALLBACK: Trả về dữ liệu mặc định hoặc Cache"
+        }), 503
+
+    except Exception as e:
+        return jsonify({
+            "status": "Lỗi",
+            "message": f"Thử lại thất bại (Đang đếm lỗi): {str(e)}",
+            "breaker_state": circuit.current_state
+        }), 500
+
+@app.route('/api/status')
+def breaker_status():
+    return jsonify({
+        "current_state": circuit.current_state,
+        "failure_count": circuit.fail_counter,
+        "reset_timeout": circuit.reset_timeout
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000, use_reloader=False)
